@@ -1,26 +1,31 @@
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { expect } from "chai";
-import { ethers } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 
 describe("NFT", function () {
-  // We define a fixture to reuse the same setup in every test.
-  // We use loadFixture to run this setup once, snapshot that state,
-  // and reset Hardhat Network to that snapshot in every test.
-  async function deployOneYearLockFixture() {
+  const deployFixture = async () => {
     const [owner, otherAccount] = await ethers.getSigners();
-
     const Contract = await ethers.getContractFactory("NftAdventure");
-    const contract = await Contract.deploy();
+
+    // 此為 proxyContract
+    const contract = await upgrades.deployProxy(Contract, [], { initializer: 'initialize' });
+
+    // 邏輯合約地址
+    // const logicAddress = await contract.getImplementation();
 
     return { contract, owner, otherAccount };
   }
 
-  describe("Deployment", function () {
-    it("test", async function () {
-      const { contract } = await loadFixture(deployOneYearLockFixture);
-      console.log(contract)
-      // expect(await lock.unlockTime()).to.equal(unlockTime);
+  describe("Deployment", async () => {
+    it("確認合約 Gold 數量", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      const goldAmount = await contract.balanceOf(contract.target, 0);
+      expect(goldAmount).to.equal(10 ** 10);
     });
+
+    it("建立 NFT", async () => {
+      
+    })
   });
 });
