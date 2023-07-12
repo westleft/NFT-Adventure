@@ -7,12 +7,12 @@ describe("NFT", function () {
   const deployFixture = async () => {
     const [owner, otherAccount] = await ethers.getSigners();
     const Contract = await ethers.getContractFactory("NftAdventure");
+    // console.log(await ethers.provider.getBalance(owner))
 
-    // 此為 proxyContract
     const contract = await upgrades.deployProxy(Contract, [], { initializer: 'initialize' });
 
     // 邏輯合約地址
-    // const logicAddress = await contract.getImplementation();
+    const logicAddress = await contract.getImplementation();
 
     return { contract, owner, otherAccount };
   }
@@ -25,7 +25,33 @@ describe("NFT", function () {
     });
 
     it("建立 NFT", async () => {
+      const { contract } = await loadFixture(deployFixture);
+      await contract.createNFT(1, 2, "0x");
+      const nftBalance = await contract.balanceOf(contract.target, 1);
+      expect(nftBalance).to.equal(2);
+    })
+
+    it("購買 GOLD + NFT", async () => {
+      const { contract, owner } = await loadFixture(deployFixture);
+      await contract.createNFT(1, 1, "0x");
+
+      await contract.buyGold({ value: ethers.parseEther("0.001") });
+      const ownerGoldBalance = await contract.balanceOf(owner.address, 0);
+      expect(ownerGoldBalance).to.equal(100000);
+
+      await contract.buyNFT(1, 10000);
+      const ownerNftBalance = await contract.balanceOf(owner.address, 1);
+      expect(ownerNftBalance).to.equal(1);
+    })
+
+    it("UUPS", async () => {
+      const { contract } = await loadFixture(deployFixture);
+      const ContractV2 = await ethers.getContractFactory("NftAdventureV2");
+      const contractV2 = await upgrades.upgradeProxy(contract, ContractV2)
       
+      await contractV2.createNFT(5, 1, "0x");
+      const nftBalance = await contractV2.balanceOf(contractV2.target, 5);
+      expect(nftBalance).to.equal(1);
     })
   });
 });

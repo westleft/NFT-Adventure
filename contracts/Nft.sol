@@ -15,10 +15,10 @@ error NftAdventure__TransferFailed();
 
 // NFT-Adventure
 contract NftAdventure is Initializable, ERC1155Upgradeable, OwnableUpgradeable, PausableUpgradeable, ERC1155BurnableUpgradeable, ERC1155SupplyUpgradeable, UUPSUpgradeable {
-    
-    uint256 public constant NFT_PRICE = 0.001 ether;
+    event BuyNFT(address indexed buyer, uint256 tokenId, uint256 amount);
+
     uint256 public constant GOLD_TOKEN_ID = 0;
-    uint256 public constant ETH_TO_GOLD_RATE = 1000000;
+    uint256 public constant ETH_TO_GOLD_RATE = 100000;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -57,16 +57,19 @@ contract NftAdventure is Initializable, ERC1155Upgradeable, OwnableUpgradeable, 
 
         _setApprovalForAll(address(this), msg.sender, true);
         safeTransferFrom(address(this), msg.sender, tokenId, 1, "");
+        emit BuyNFT(msg.sender, tokenId, 1);
     }
 
     // 將 ETH 換成 GOLD
-    function buyGold(uint256 ethAmount) public payable {
-        if (msg.value <= 0) revert NftAdventure__PaymentNotEnough();
-        (bool success, ) = (msg.sender).call{value: ethAmount}("");
+    function buyGold() public payable {
+        if (msg.value < 0.001 ether) revert NftAdventure__PaymentNotEnough();
+        (bool success, ) = (msg.sender).call{value: msg.value}("");
         if (!success) revert NftAdventure__TransferFailed();
 
         _setApprovalForAll(address(this), msg.sender, true);
-        safeTransferFrom(address(this), msg.sender, GOLD_TOKEN_ID, ethAmount * ETH_TO_GOLD_RATE, "");
+        safeTransferFrom(address(this), msg.sender, GOLD_TOKEN_ID, (msg.value / 1e15) * ETH_TO_GOLD_RATE, ""); 
+        
+        emit BuyNFT(msg.sender, 0, (msg.value / 1e15) * ETH_TO_GOLD_RATE);
     }
 
     function _authorizeUpgrade(address newImplementation) internal onlyOwner override {}
