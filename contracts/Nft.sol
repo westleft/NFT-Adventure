@@ -19,6 +19,14 @@ contract NftAdventure is Initializable, ERC1155Upgradeable, OwnableUpgradeable, 
 
     uint256 public constant GOLD_TOKEN_ID = 0;
     uint256 public constant ETH_TO_GOLD_RATE = 100000;
+    string public constant name = "NFT-Adventure";
+
+    mapping (address => bool) public admins;
+
+    modifier onlyAdmin {
+        require(admins[msg.sender], "You are not admin");
+        _;        
+    }
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -26,7 +34,7 @@ contract NftAdventure is Initializable, ERC1155Upgradeable, OwnableUpgradeable, 
     }
 
     function initialize() initializer public {
-        __ERC1155_init("https://gateway.pinata.cloud/ipfs/QmZMUM2csptJC4rVKHgyiTH5kd4nikYnRACzpWvbiDxajQ/");
+        __ERC1155_init("https://gateway.pinata.cloud/ipfs/QmZMUM2csptJC4rVKHgyiTH5kd4nikYnRACzpWvbiDxajQ/{id}.json");
         __Ownable_init();
         __Pausable_init();
         __ERC1155Burnable_init();
@@ -34,6 +42,7 @@ contract NftAdventure is Initializable, ERC1155Upgradeable, OwnableUpgradeable, 
         __UUPSUpgradeable_init();
 
         __Token_init();
+        admins[msg.sender] = true;
     }
 
     function __Token_init() private onlyOwner {
@@ -41,7 +50,7 @@ contract NftAdventure is Initializable, ERC1155Upgradeable, OwnableUpgradeable, 
     }
 
     // 建立 NFT
-    function createNFT(uint256 id, uint256 amount, bytes memory data) public onlyOwner {
+    function createNFT(uint256 id, uint256 amount, bytes memory data) public onlyAdmin {
         _mint(address(this), id, amount, data);
     }
 
@@ -68,8 +77,7 @@ contract NftAdventure is Initializable, ERC1155Upgradeable, OwnableUpgradeable, 
 
         _setApprovalForAll(address(this), msg.sender, true);
         safeTransferFrom(address(this), msg.sender, GOLD_TOKEN_ID, (msg.value / 1e15) * ETH_TO_GOLD_RATE, ""); 
-        
-        emit BuyNFT(msg.sender, 0, (msg.value / 1e15) * ETH_TO_GOLD_RATE);
+        emit BuyNFT(msg.sender, 0, 1);
     }
 
     function _authorizeUpgrade(address newImplementation) internal onlyOwner override {}
@@ -96,6 +104,10 @@ contract NftAdventure is Initializable, ERC1155Upgradeable, OwnableUpgradeable, 
         returns (bytes4)
     {
         return this.onERC1155BatchReceived.selector;
+    }
+
+    function addAdmin(address admin) external onlyOwner {
+        admins[admin] = true;
     }
 
     function setURI(string memory newuri) public onlyOwner {

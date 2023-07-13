@@ -11,9 +11,6 @@ describe("NFT", function () {
 
     const contract = await upgrades.deployProxy(Contract, [], { initializer: 'initialize' });
 
-    // 邏輯合約地址
-    const logicAddress = await contract.getImplementation();
-
     return { contract, owner, otherAccount };
   }
 
@@ -42,6 +39,13 @@ describe("NFT", function () {
       await contract.buyNFT(1, 10000);
       const ownerNftBalance = await contract.balanceOf(owner.address, 1);
       expect(ownerNftBalance).to.equal(1);
+    })
+
+    it("新增管理員", async () => {
+      const { contract, owner, otherAccount } = await loadFixture(deployFixture);
+      await contract.addAdmin(otherAccount)
+      await contract.connect(otherAccount).createNFT(1, 2, "0x")
+      expect(await contract.balanceOf(contract.target, 1)).to.equal(2);
     })
 
     it("UUPS", async () => {

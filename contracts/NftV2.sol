@@ -24,6 +24,8 @@ contract NftAdventureV2 is Initializable, ERC1155Upgradeable, OwnableUpgradeable
     uint256 public constant GOLD_TOKEN_ID = 0;
     uint256 public constant ETH_TO_GOLD_RATE = 100000;
 
+    mapping (address => bool) public admins;
+
     // 建立 NFT
     function createNFT(uint256 id, uint256 amount, bytes memory data) public onlyOwner {
         _mint(address(this), id, amount, data);
