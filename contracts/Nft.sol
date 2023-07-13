@@ -19,7 +19,6 @@ contract NftAdventure is Initializable, ERC1155Upgradeable, OwnableUpgradeable, 
 
     uint256 public constant GOLD_TOKEN_ID = 0;
     uint256 public constant ETH_TO_GOLD_RATE = 100000;
-    string public constant name = "NFT-Adventure";
 
     mapping (address => bool) public admins;
 
@@ -34,7 +33,7 @@ contract NftAdventure is Initializable, ERC1155Upgradeable, OwnableUpgradeable, 
     }
 
     function initialize() initializer public {
-        __ERC1155_init("https://gateway.pinata.cloud/ipfs/QmZMUM2csptJC4rVKHgyiTH5kd4nikYnRACzpWvbiDxajQ/{id}.json");
+        __ERC1155_init("https://gateway.pinata.cloud/ipfs/QmfVvLbomKo8YyKK93XmfkYNw2Jndeamy27AAVSEzdRe9K/{id}.json");
         __Ownable_init();
         __Pausable_init();
         __ERC1155Burnable_init();
@@ -147,4 +146,9 @@ contract NftAdventure is Initializable, ERC1155Upgradeable, OwnableUpgradeable, 
     function getImplementation() external view returns(address) {
         return _getImplementation();
     }
+
+    function contractURI() public view returns (string memory) {
+        return "https://gateway.pinata.cloud/ipfs/QmPTjgMkYchaxuLgbDvphHVPCmGZS5Uoefppjz5uPyDcWz/contract.json";
+    }
+
 }
